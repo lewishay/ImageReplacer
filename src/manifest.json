@@ -1,0 +1,10 @@
+{
+  "manifest_version": 2,
+  "name": "ImageReplacer",
+  "version": "1.0",
+  "description": "A Firefox extension that allows you to replace images across the web",
+  "browser_action": {
+    "default_title": "ImageReplacer",
+    "default_popup": "popup.html"
+  }
+}
