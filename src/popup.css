@@ -1,0 +1,47 @@
+body {
+    font-family: sans-serif;
+    padding: 5px;
+    min-width: 350px;
+    background-color: black;
+    color: white;
+}
+
+h1 {
+    font-size: 24px;
+    text-align: center;
+    margin-bottom: 25px;
+}
+
+p {
+    margin-top: 0px;
+    text-align: center;
+}
+
+div {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 25px;
+}
+
+button {
+    color: white;
+    border-style: dashed;
+    margin: 0px 10px 0px 10px;
+    font-size: 14px;
+}
+
+#select-button {
+    background-color: #228062;
+    border-color: #3acf9f;
+    height: 60px;
+    width: 100px;
+}
+
+#view-button {
+    background-color: #296d91;
+    border-color: #3a9acf;
+    height: 60px;
+    width: 130px;
+}
+
