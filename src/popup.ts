@@ -12,3 +12,4 @@ selectImageButton.addEventListener("click", async () => {
         type: "START_ELEMENT_PICK"
     });
 });
+    

@@ -19,6 +19,7 @@
   },
   "homepage": "https://github.com/lewishay/ImageReplacer#readme",
   "devDependencies": {
+    "esbuild": "^0.27.3",
     "typescript": "^5.9.3",
     "web-ext-types": "^3.2.1"
   }

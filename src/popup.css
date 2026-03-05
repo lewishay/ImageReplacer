@@ -26,9 +26,10 @@ div {
 
 button {
     color: white;
-    border-style: dashed;
+    border: 2px dashed;
     margin: 0px 10px 0px 10px;
     font-size: 14px;
+    border-radius: 4px;
 }
 
 #select-button {
