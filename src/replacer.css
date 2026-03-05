@@ -1,0 +1,78 @@
+#image-replace-popup {
+    position: fixed;
+    bottom: 6px;
+    right: 6px;
+    width: 580px;
+    height: 280px;
+    background: black;
+    color: white;
+    border: 2px solid cyan;
+    text-align: center;
+    z-index: 2147483647;
+}
+
+#image-replace-popup div {
+    margin: 10px;
+}
+
+#image-replace-popup h2 {
+    display: flex;
+    justify-content: center;
+    font-family: Arial;
+    font-size: 20px;
+    font-weight: 600;
+    margin: 10px;
+}
+
+#image-replace-popup p {
+    align-content: center;
+    font-size: 42px;
+    margin: 0px 20px 0px 20px;
+}
+
+#image-replace-popup img {
+    margin: 10px;
+    width: 100px;
+    height: 100px;
+}
+
+#image-replace-popup input {
+    width: 380px;
+    height: 25px;
+    color: black;
+    margin-right: 15px;
+}
+
+#image-replace-popup button {
+    color: white;
+    font-family: Arial;
+    font-size: 14px;
+    font-weight: normal;
+    height: 30px;
+    border: 2px dashed;
+    border-radius: 4px;
+    padding: 0px;
+    line-height: 1.4;
+    text-transform: none;
+}
+
+#image-replace-popup #load-button {
+    background-color: #296d91;
+    border-color: #3a9acf;
+    margin: 0px 10px 0px 10px;
+    width: 80px;
+}
+
+#image-replace-popup #confirm-button {
+    background-color: #228062;
+    border-color: #3acf9f;
+    margin: 10px;
+    width: 150px;
+}
+
+#image-replace-popup #exit-button {
+    background-color: #9c342d;
+    border-color: #cf6a63;
+    margin: 10px;
+    width: 50px;
+}

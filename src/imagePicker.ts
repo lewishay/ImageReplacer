@@ -1,3 +1,5 @@
+import { replaceImagesByRule, replacementRules } from "./imageReplacer";
+
 type SupportedImage =
     | { type: "img"; element: HTMLImageElement }
     | { type: "background"; element: HTMLElement; url: string };
@@ -6,12 +8,8 @@ let picking = false;
 let highlightedImage: SupportedImage | null = null;
 let highlightedImageBox: HTMLDivElement | null = null;
 let dimOverlay: HTMLDivElement | null = null;
-
-browser.runtime.onMessage.addListener((message: { type?: string }) => {
-    if (message.type === "START_ELEMENT_PICK") {
-        startPicking();
-    }
-});
+let replacementPopup: HTMLDivElement | null = null;
+let currentReplacementImage: HTMLImageElement | null;
 
 function createOverlay() {
     if (dimOverlay) return;
@@ -21,7 +19,7 @@ function createOverlay() {
         position: "fixed",
         inset: "0",
         background: "rgba(0, 0, 0, 0.33)",
-        zIndex: "2147483646",
+        zIndex: "2147483645",
         pointerEvents: "none"
     });
 
@@ -38,7 +36,7 @@ function createHighlightImageBox() {
         background: "rgba(150, 200, 255, 0.2)",
         backdropFilter: "brightness(1.5)",
         pointerEvents: "none",
-        zIndex: "2147483647",
+        zIndex: "2147483646",
         boxSizing: "border-box",
     });
 
@@ -59,7 +57,7 @@ function getBackgroundImage(el: Element, beforePseudoElement: Boolean): string |
     return url ? url[1] : null;
 }
 
-function startPicking() {
+export function startPicking() {
     if (picking) return;
     picking = true;
     createOverlay();
@@ -136,8 +134,7 @@ function onClick(event: MouseEvent) {
         ? highlightedImage.element.src
         : highlightedImage.url;
 
-    console.log("Source of selected image:", src);
-
+    showReplacementPopup(src, highlightedImage.type);
     stopPicking();
 }
 
@@ -145,4 +142,86 @@ function onKeyDown(e: KeyboardEvent) {
     if (e.key === "Escape") {
         stopPicking();
     }
+}
+
+function showReplacementPopup(imageSrc: string, imageType: string) {
+    document.getElementById("image-replace-popup")?.remove();
+    replacementPopup = document.createElement("div");
+    replacementPopup.id = "image-replace-popup";
+
+    let h2 = document.createElement("h2");
+    h2.textContent = "Enter a URL or local file path to replace this image";
+    replacementPopup.appendChild(h2);
+
+    let imageDiv = document.createElement("div");
+    imageDiv.style.display = "flex";
+    imageDiv.style.justifyContent = "center";
+    replacementPopup.appendChild(imageDiv);
+
+    let targetImage = document.createElement("img");
+    targetImage.src = imageSrc;
+    imageDiv.appendChild(targetImage);
+
+    let arrowSymbol = document.createElement("p");
+    arrowSymbol.textContent = "→";
+    imageDiv.appendChild(arrowSymbol);
+
+    currentReplacementImage = document.createElement("img")
+    currentReplacementImage.src = "";
+    imageDiv.appendChild(currentReplacementImage);
+
+    let inputDiv = document.createElement("div");
+    replacementPopup.appendChild(inputDiv);
+
+    let input = document.createElement("input");
+    inputDiv.appendChild(input);
+
+    let loadButton = document.createElement("button");
+    loadButton.id = "load-button";
+    loadButton.textContent = "Load";
+    loadButton.addEventListener("click", () => loadImage(input.value));
+    inputDiv.appendChild(loadButton);
+
+    let buttonsDiv = document.createElement("div");
+    replacementPopup.appendChild(buttonsDiv);
+
+    let confirmButton = document.createElement("button");
+    confirmButton.id = "confirm-button";
+    confirmButton.textContent = "Confirm";
+    confirmButton.addEventListener("click", () => confirmClick(imageSrc, input.value, imageType));
+    buttonsDiv.appendChild(confirmButton);
+
+    let exitButton = document.createElement("button");
+    exitButton.id = "exit-button";
+    exitButton.textContent = "Exit";
+    exitButton.addEventListener("click", () => document.getElementById("image-replace-popup")?.remove());
+    buttonsDiv.appendChild(exitButton);
+
+    document.body.appendChild(replacementPopup);
+}
+
+function loadImage(src: string) {
+    // URL
+    if (/(http(s?)):\/\//i.test(src)) {
+        currentReplacementImage!.src = src;
+    }
+    // local file
+    else {
+        currentReplacementImage!.src = ""; // TODO
+    }
+}
+
+function confirmClick(oldPath: string, newPath: string, imgType: string) {
+    currentReplacementImage = null;
+    replacementPopup?.remove();
+    replacementPopup = null;
+
+    const newRule = {
+        oldSrc: oldPath,
+        newSrc: newPath
+    };
+
+    replacementRules.push(newRule);
+
+    replaceImagesByRule(newRule, imgType);
 }
