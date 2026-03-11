@@ -1,19 +1,4 @@
-type ImageReplacementRule = {
-    oldSrc: string;
-    newSrc: string;
-};
-
-export let replacementRules: ImageReplacementRule[]
-
-replacementRules = [
-    { oldSrc: "test1", newSrc: "test2" }
-];
-
-if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", startImageObserver);
-} else {
-    startImageObserver();
-}
+import { ImageReplacementRule } from "./imagePicker";
 
 export function replaceImagesByRule(rule: ImageReplacementRule, imageType: string) {
     if (imageType == "img") {
@@ -25,64 +10,33 @@ export function replaceImagesByRule(rule: ImageReplacementRule, imageType: strin
         });
     }
     else if (imageType == "background") {
-        document.querySelectorAll<HTMLElement>("*[style*='background']").forEach(el => {
-            const bg = el.style?.backgroundImage;
-            if (!bg || bg === "none") return;
+        document.querySelectorAll<HTMLElement>("*").forEach(el => {
+            const pseudos: Array<string> = ["none", "::before", "::after"];
+            pseudos.forEach(pseudo => {
+                const bg = pseudo === "none"
+                    ? getComputedStyle(el).backgroundImage
+                    : getComputedStyle(el, pseudo).backgroundImage;
 
-            if (bg.includes(rule.oldSrc)) {
-                el.style.backgroundImage = `url("${rule.newSrc}")`;
-            }
+                const match = bg.match(/url\(["']?(.*?)["']?\)/);
+                const url = match ? match[1] : null;
+
+                if (url && url.includes(rule.oldSrc)) {
+
+                    if (pseudo === "none") {
+                        el.style.backgroundImage = `url("${rule.newSrc}")`;
+                    }
+                    else {
+                        const className = `replace-bg-${rule.id}`;
+                        el.classList.add(className);
+
+                        const styleEl = document.createElement("style");
+                        styleEl.textContent = `.${className}${pseudo} {
+                            background-image: url("${rule.newSrc}") !important;
+                        }`;
+                        document.head.appendChild(styleEl);
+                    }
+                }
+            });
         });
     }
-}
-
-function replaceImage(img: HTMLImageElement) {
-    for (const rule of replacementRules) {
-        if (img.src.includes(rule.oldSrc)) {
-            img.src = rule.newSrc;
-            return;
-        }
-    }
-}
-
-function replaceBackgroundImage(el: HTMLElement) {
-    const bg = el.style?.backgroundImage;
-    if (!bg || bg === "none") return;
-
-    for (const rule of replacementRules) {
-        if (bg.includes(rule.oldSrc)) {
-            el.style.backgroundImage = `url("${rule.newSrc}")`;
-        }
-    }
-}
-
-function processNode(node: Node) {
-    if (node instanceof HTMLImageElement) {
-        replaceImage(node);
-    } else if (node instanceof HTMLElement) {
-        // Check if this node has a bg image
-        replaceBackgroundImage(node);
-
-        // Get all relevant elements inside this node
-        node.querySelectorAll("img").forEach(replaceImage);
-        node.querySelectorAll<HTMLElement>("*[style*='background']").forEach(replaceBackgroundImage);
-    }
-}
-
-function startImageObserver() {
-    // Initial replacement
-    document.querySelectorAll("img").forEach(replaceImage);
-    document.querySelectorAll<HTMLElement>("*[style*='background']").forEach(replaceBackgroundImage);
-
-    // Watching for future changes
-    const observer = new MutationObserver(mutations => {
-        for (const mutation of mutations) {
-            mutation.addedNodes.forEach(processNode);
-        }
-    });
-
-    observer.observe(document.body, {
-        childList: true,
-        subtree: true   
-    });
 }
