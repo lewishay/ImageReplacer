@@ -1,4 +1,10 @@
-import { replaceImagesByRule, replacementRules } from "./imageReplacer";
+import { replaceImagesByRule } from "./imageReplacer";
+
+export type ImageReplacementRule = {
+    id: number;
+    oldSrc: string;
+    newSrc: string;
+};
 
 type SupportedImage =
     | { type: "img"; element: HTMLImageElement }
@@ -10,6 +16,9 @@ let highlightedImageBox: HTMLDivElement | null = null;
 let dimOverlay: HTMLDivElement | null = null;
 let replacementPopup: HTMLDivElement | null = null;
 let currentReplacementImage: HTMLImageElement | null;
+
+const urlRegex = /^https?:\/\/(?:www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b(?:[-a-zA-Z0-9()@:%_\+.~#?&\/=]*)$/
+const bgImgRegex = /url\(["']?(.*?)["']?\)/
 
 function createOverlay() {
     if (dimOverlay) return;
@@ -53,7 +62,7 @@ function getBackgroundImage(el: Element, beforePseudoElement: Boolean): string |
 
     if (!bg || bg === "none") return null;
 
-    const url = bg.match(/url\(["']?(.*?)["']?\)/);
+    const url = bg.match(bgImgRegex);
     return url ? url[1] : null;
 }
 
@@ -131,7 +140,7 @@ function onClick(event: MouseEvent) {
     if (!highlightedImage) return;
 
     const src = highlightedImage.type === "img"
-        ? highlightedImage.element.src
+        ? highlightedImage.element.currentSrc || highlightedImage.element.src
         : highlightedImage.url;
 
     showReplacementPopup(src, highlightedImage.type);
@@ -202,7 +211,7 @@ function showReplacementPopup(imageSrc: string, imageType: string) {
 
 function loadImage(src: string) {
     // URL
-    if (/(http(s?)):\/\//i.test(src)) {
+    if (src.match(urlRegex)) {
         currentReplacementImage!.src = src;
     }
     // local file
@@ -211,17 +220,27 @@ function loadImage(src: string) {
     }
 }
 
-function confirmClick(oldPath: string, newPath: string, imgType: string) {
+async function confirmClick(oldPath: string, newPath: string, imgType: string) {
     currentReplacementImage = null;
     replacementPopup?.remove();
     replacementPopup = null;
 
+    const oldFileName = new URL(oldPath).pathname.split("/").filter(Boolean).pop() ?? oldPath;
+    let newId = Date.now();
+
+    //console.log(oldPath);
+    //console.log(oldFileName);
+
     const newRule = {
-        oldSrc: oldPath,
+        id: newId,
+        oldSrc: oldFileName,
         newSrc: newPath
     };
 
-    replacementRules.push(newRule);
+    await browser.runtime.sendMessage({
+        type: "addRule",
+        rule: newRule
+    });
 
     replaceImagesByRule(newRule, imgType);
 }
