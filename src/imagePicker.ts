@@ -52,18 +52,25 @@ function createHighlightImageBox() {
     document.documentElement.appendChild(highlightedImageBox);
 }
 
-function getBackgroundImage(el: Element, beforePseudoElement: Boolean): string | null {
+function getBackgroundImage(el: Element): string | null {
     if (!(el instanceof HTMLElement)) return null;
 
-    const style = beforePseudoElement
-        ? getComputedStyle(el, "::before")
-        : getComputedStyle(el);
-    const bg = style.backgroundImage;
+    let result = null;
 
-    if (!bg || bg === "none") return null;
+    const pseudos: Array<string> = ["none", "::before", "::after"];
+    pseudos.forEach(pseudo => {
+        const bg = pseudo === "none"
+            ? getComputedStyle(el).backgroundImage
+            : getComputedStyle(el, pseudo).backgroundImage;
 
-    const url = bg.match(bgImgRegex);
-    return url ? url[1] : null;
+        const url = bg.match(bgImgRegex);
+
+        if (url) {
+            result = url[1];
+        }
+    });
+
+    return result;
 }
 
 export function startPicking() {
@@ -100,16 +107,9 @@ function onMouseMove(event: MouseEvent) {
         }
 
         // 2. background-image on element
-        const bgUrl = getBackgroundImage(el, false);
+        const bgUrl = getBackgroundImage(el);
         if (bgUrl) {
             img = { type: "background", element: el as HTMLElement, url: bgUrl };
-            break;
-        }
-
-        // 3. background-image on ::before
-        const beforeBgUrl = getBackgroundImage(el, true);
-        if (beforeBgUrl) {
-            img = { type: "background", element: el as HTMLElement, url: beforeBgUrl };
             break;
         }
     }
