@@ -1,4 +1,4 @@
-import { ImageReplacementRule } from "./imagePicker";
+import { ImageReplacementRule, bgImgRegex, pseudos } from "./constants";
 
 export function replaceImagesByRule(rule: ImageReplacementRule, imageType: string) {
     if (imageType == "img") {
@@ -11,13 +11,12 @@ export function replaceImagesByRule(rule: ImageReplacementRule, imageType: strin
     }
     else if (imageType == "background") {
         document.querySelectorAll<HTMLElement>("*").forEach(el => {
-            const pseudos: Array<string> = ["none", "::before", "::after"];
             pseudos.forEach(pseudo => {
                 const bg = pseudo === "none"
                     ? getComputedStyle(el).backgroundImage
                     : getComputedStyle(el, pseudo).backgroundImage;
 
-                const match = bg.match(/url\(["']?(.*?)["']?\)/);
+                const match = bg.match(bgImgRegex);
                 const url = match ? match[1] : null;
 
                 if (url && url.includes(rule.oldSrc)) {

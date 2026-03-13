@@ -1,14 +1,5 @@
 import { replaceImagesByRule } from "./imageReplacer";
-
-export type ImageReplacementRule = {
-    id: number;
-    oldSrc: string;
-    newSrc: string;
-};
-
-type SupportedImage =
-    | { type: "img"; element: HTMLImageElement }
-    | { type: "background"; element: HTMLElement; url: string };
+import { SupportedImage, urlRegex, bgImgRegex, pseudos } from "./constants";
 
 let picking = false;
 let highlightedImage: SupportedImage | null = null;
@@ -16,9 +7,6 @@ let highlightedImageBox: HTMLDivElement | null = null;
 let dimOverlay: HTMLDivElement | null = null;
 let replacementPopup: HTMLDivElement | null = null;
 let currentReplacementImage: HTMLImageElement | null;
-
-const urlRegex = /^https?:\/\/(?:www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b(?:[-a-zA-Z0-9()@:%_\+.~#?&\/=]*)$/
-const bgImgRegex = /url\(["']?(.*?)["']?\)/
 
 function createOverlay() {
     if (dimOverlay) return;
@@ -57,7 +45,6 @@ function getBackgroundImage(el: Element): string | null {
 
     let result = null;
 
-    const pseudos: Array<string> = ["none", "::before", "::after"];
     pseudos.forEach(pseudo => {
         const bg = pseudo === "none"
             ? getComputedStyle(el).backgroundImage
@@ -210,13 +197,8 @@ function showReplacementPopup(imageSrc: string, imageType: string) {
 }
 
 function loadImage(src: string) {
-    // URL
     if (src.match(urlRegex)) {
         currentReplacementImage!.src = src;
-    }
-    // local file
-    else {
-        currentReplacementImage!.src = ""; // TODO
     }
 }
 
