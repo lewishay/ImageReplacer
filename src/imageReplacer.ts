@@ -3,7 +3,7 @@ import { ImageReplacementRule, bgImgRegex, pseudos } from "./constants";
 export function replaceImagesByRule(rule: ImageReplacementRule, imageType: string) {
     if (imageType == "img") {
         document.querySelectorAll("img").forEach(img => {
-            if (img.src.includes(rule.oldSrc)) {
+            if (img.src.includes(rule.oldFileName)) {
                 img.src = rule.newSrc;
                 return;
             }
@@ -19,7 +19,7 @@ export function replaceImagesByRule(rule: ImageReplacementRule, imageType: strin
                 const match = bg.match(bgImgRegex);
                 const url = match ? match[1] : null;
 
-                if (url && url.includes(rule.oldSrc)) {
+                if (url && url.includes(rule.oldFileName)) {
 
                     if (pseudo === "none") {
                         el.style.backgroundImage = `url("${rule.newSrc}")`;

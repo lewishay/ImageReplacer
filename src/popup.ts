@@ -1,4 +1,5 @@
 const selectImageButton = document.getElementById("select-button") as HTMLButtonElement;
+const existingRulesButton = document.getElementById("view-button") as HTMLButtonElement;
 
 selectImageButton.addEventListener("click", async () => {
     const tabs = await browser.tabs.query({
@@ -12,4 +13,9 @@ selectImageButton.addEventListener("click", async () => {
         type: "START_ELEMENT_PICK"
     });
 });
-    
+
+existingRulesButton.addEventListener("click", async () => {
+    browser.tabs.create({
+        url: browser.runtime.getURL("existingRules.html")
+    });
+})

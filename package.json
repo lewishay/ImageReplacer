@@ -4,14 +4,16 @@
   "description": "A Firefox extension that allows you to replace images across the web",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "node build.js",
+    "copy": "del /Q dist\\*.html dist\\*.css && xcopy src\\*.html dist /Y /I && xcopy src\\*.css dist /Y /I"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/lewishay/ImageReplacer.git"
   },
   "keywords": [],
-  "author": "",
+  "author": "Lewis Hay",
   "license": "ISC",
   "type": "commonjs",
   "bugs": {
