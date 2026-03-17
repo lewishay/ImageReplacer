@@ -1,8 +1,4 @@
-type ImageReplacementRule = {
-    id: number;
-    oldSrc: string;
-    newSrc: string;
-};
+import { ImageReplacementRule } from "./constants";
 
 browser.runtime.onInstalled.addListener(loadRules);
 browser.runtime.onStartup.addListener(loadRules);
@@ -38,7 +34,7 @@ function createRedirectRule(rule: ImageReplacementRule): browser.declarativeNetR
             }
         },
         condition: {
-            urlFilter: rule.oldSrc
+            urlFilter: rule.oldFileName
         }
     };
 }
