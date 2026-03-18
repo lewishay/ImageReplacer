@@ -12,14 +12,17 @@ async function loadRules() {
 browser.runtime.onMessage.addListener(async (msg) => {
     if (msg.type === "addRule") {
         const result = await browser.storage.local.get("imageRules");
-
         const rules: ImageReplacementRule[] = result.imageRules ?? [];
-
         rules.push(msg.rule);
-
         await browser.storage.local.set({ imageRules: rules });
-
         await updateRules(rules);
+    }
+    else if (msg.type === "deleteRule") {
+        const result = await browser.storage.local.get("imageRules");
+        const existingRules: ImageReplacementRule[] = result.imageRules ?? [];
+        const updatedRules = existingRules.filter(r => r.id !== msg.rule.id);
+        await browser.storage.local.set({ imageRules: updatedRules });
+        await updateRules(updatedRules);
     }
 });
 
@@ -34,7 +37,8 @@ function createRedirectRule(rule: ImageReplacementRule): browser.declarativeNetR
             }
         },
         condition: {
-            urlFilter: rule.oldFileName
+            urlFilter: rule.oldFileName,
+            "resourceTypes": ["image", "imageset"]
         }
     };
 }
