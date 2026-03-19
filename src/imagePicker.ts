@@ -146,7 +146,7 @@ function showReplacementPopup(imageSrc: string, imageType: string) {
     replacementPopup.id = "image-replace-popup";
 
     let h2 = document.createElement("h2");
-    h2.textContent = "Enter a URL or local file path to replace this image";
+    h2.textContent = "Enter the URL of an image file";
     replacementPopup.appendChild(h2);
 
     let imageDiv = document.createElement("div");
