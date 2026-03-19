@@ -60,3 +60,45 @@ button {
     height: 40px;
     width: 100px;
 }
+
+#rule-modify-popup {
+    position: fixed;
+    background: black;
+    color: white;
+    border: 2px solid cyan;
+    text-align: center;
+}
+
+#rule-modify-popup h2 {
+    font-size: 18px;
+    font-weight: normal;
+    margin: 15px 0px 10px 0px;
+}
+
+#rule-modify-popup button {
+    height: 30px;
+    padding: 0px;
+    line-height: 1.4;
+    text-transform: none;
+}
+
+#rule-modify-popup input {
+    width: 420px;
+    height: 22px;
+    color: black;
+    margin: 8px 18px;
+}
+
+#rule-modify-popup #confirm-button {
+    background-color: #228062;
+    border-color: #3acf9f;
+    margin: 10px;
+    width: 150px;
+}
+
+#rule-modify-popup #exit-button {
+    background-color: #9c342d;
+    border-color: #cf6a63;
+    margin: 10px;
+    width: 50px;
+}
