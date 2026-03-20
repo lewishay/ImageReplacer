@@ -208,7 +208,7 @@ async function confirmClick(oldPath: string, newPath: string, imgType: string) {
     replacementPopup = null;
 
     const url = new URL(oldPath);
-    const currentHost = url.protocol + "//" + url.host;
+    const currentHost = url.host;
     const oldFileName = url.pathname.split("/").filter(Boolean).pop() ?? oldPath;
     let newId = Date.now();
 
