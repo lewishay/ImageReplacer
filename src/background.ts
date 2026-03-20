@@ -38,7 +38,8 @@ function createRedirectRule(rule: ImageReplacementRule): browser.declarativeNetR
         },
         condition: {
             urlFilter: rule.oldFileName,
-            "resourceTypes": ["image", "imageset"]
+            resourceTypes: ["image", "imageset"],
+            initiatorDomains: [rule.host]
         }
     };
 }
