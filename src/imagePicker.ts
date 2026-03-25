@@ -208,8 +208,8 @@ async function confirmClick(oldPath: string, newPath: string, imgType: string) {
     replacementPopup = null;
 
     const url = new URL(oldPath);
-    const currentHost = window.location.hostname; // host of website
-    const currentImageHost = url.host;            // host of image resource
+    const currentHost = window.location.hostname.replace(/^www\./, ""); // host of website
+    const currentImageHost = url.host;                                  // host of image resource
     const oldFileName = url.pathname.split("/").filter(Boolean).pop() ?? oldPath;
     let newId = Date.now();
 
@@ -228,7 +228,7 @@ async function confirmClick(oldPath: string, newPath: string, imgType: string) {
     };
 
     await browser.runtime.sendMessage({
-        type: "addRule",
+        type: "ADD_RULE",
         rule: newRule
     });
 
