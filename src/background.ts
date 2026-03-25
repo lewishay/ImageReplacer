@@ -1,28 +1,42 @@
 import { ImageReplacementRule } from "./constants";
 
-browser.runtime.onInstalled.addListener(loadRules);
-browser.runtime.onStartup.addListener(loadRules);
-
-async function loadRules() {
-    const result = await browser.storage.local.get("imageRules");
-    const rules: ImageReplacementRule[] = result.imageRules ?? [];
-    await updateRules(rules);
-}
-
 browser.runtime.onMessage.addListener(async (msg) => {
-    if (msg.type === "addRule") {
-        const result = await browser.storage.local.get("imageRules");
-        const rules: ImageReplacementRule[] = result.imageRules ?? [];
+    if (msg.type === "ADD_RULE") {
+        const rulesFromStorage = await browser.storage.local.get("imageRules");
+        const hostsFromStorage = await browser.storage.local.get("imageReplacementHosts")
+        const rules: ImageReplacementRule[] = rulesFromStorage.imageRules ?? [];
+        const hosts: string[] = hostsFromStorage.imageReplacementHosts ?? [];
+
         rules.push(msg.rule);
+        if (!hosts.includes(msg.rule.host)) hosts.push(msg.rule.host);
+
         await browser.storage.local.set({ imageRules: rules });
+        await browser.storage.local.set({ imageReplacementHosts: hosts });
         await updateRules(rules);
     }
-    else if (msg.type === "deleteRule") {
-        const result = await browser.storage.local.get("imageRules");
-        const existingRules: ImageReplacementRule[] = result.imageRules ?? [];
-        const updatedRules = existingRules.filter(r => r.id !== msg.rule.id);
+
+    if (msg.type === "DELETE_RULE") {
+        const rulesFromStorage = await browser.storage.local.get("imageRules");
+        const hostsFromStorage = await browser.storage.local.get("imageReplacementHosts")
+        const rules: ImageReplacementRule[] = rulesFromStorage.imageRules ?? [];
+        const hosts: string[] = hostsFromStorage.imageReplacementHosts ?? [];
+
+        let updatedHosts = hosts
+        if (rules.filter((r => r.host === msg.rule.host)).length == 1) updatedHosts = hosts.filter(r => r !== msg.rule.host);
+        const updatedRules = rules.filter(r => r.id !== msg.rule.id);
+
         await browser.storage.local.set({ imageRules: updatedRules });
+        await browser.storage.local.set({ imageReplacementHosts: updatedHosts });
         await updateRules(updatedRules);
+    }
+
+    if (msg.type === "ENABLE_RULES_FOR_SITE") {
+        const rulesFromStorage = await browser.storage.local.get("imageRules");
+        const rules: ImageReplacementRule[] = rulesFromStorage.imageRules ?? [];
+
+        const rulesToApply = rules.filter(r => r.host === msg.host);
+
+        await updateRules(rulesToApply);
     }
 });
 

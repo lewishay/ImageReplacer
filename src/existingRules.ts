@@ -109,14 +109,14 @@ function modifyRule(targetRule: ImageReplacementRule, e: MouseEvent) {
 async function confirmModification(targetRule: ImageReplacementRule, newPath: string) {
     if (newPath.match(urlRegex)) {
         await browser.runtime.sendMessage({
-            type: "deleteRule",
+            type: "DELETE_RULE",
             rule: targetRule
         });
 
         targetRule.newSrc = newPath;
 
         await browser.runtime.sendMessage({
-            type: "addRule",
+            type: "ADD_RULE",
             rule: targetRule
         });
     }
@@ -129,7 +129,7 @@ async function confirmModification(targetRule: ImageReplacementRule, newPath: st
 
 async function deleteRule(targetRule: ImageReplacementRule) {
     await browser.runtime.sendMessage({
-        type: "deleteRule",
+        type: "DELETE_RULE",
         rule: targetRule
     });
     window.location.reload();
