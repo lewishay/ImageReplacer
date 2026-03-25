@@ -208,17 +208,20 @@ async function confirmClick(oldPath: string, newPath: string, imgType: string) {
     replacementPopup = null;
 
     const url = new URL(oldPath);
-    const currentHost = url.host;
+    const currentHost = window.location.hostname; // host of website
+    const currentImageHost = url.host;            // host of image resource
     const oldFileName = url.pathname.split("/").filter(Boolean).pop() ?? oldPath;
     let newId = Date.now();
 
     //console.log(currentHost);
+    //console.log(currentImageHost);
     //console.log(oldPath);
     //console.log(oldFileName);
 
     const newRule = {
         id: newId,
         host: currentHost,
+        imageHost: currentImageHost,
         oldSrc: oldPath,
         oldFileName: oldFileName,
         newSrc: newPath

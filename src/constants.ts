@@ -1,6 +1,7 @@
 export type ImageReplacementRule = {
     id: number;
     host: string;
+    imageHost: string;
     oldSrc: string;
     oldFileName: string;
     newSrc: string;
