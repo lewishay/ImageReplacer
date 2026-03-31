@@ -51,7 +51,7 @@ function createRedirectRule(rule: ImageReplacementRule): browser.declarativeNetR
             }
         },
         condition: {
-            urlFilter: rule.oldFileName,
+            urlFilter: rule.oldFileSrc,
             resourceTypes: ["image", "imageset"],
             requestDomains: [rule.imageHost]
         }
