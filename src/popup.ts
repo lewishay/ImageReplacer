@@ -12,10 +12,14 @@ selectImageButton.addEventListener("click", async () => {
     await browser.tabs.sendMessage(tabs[0].id, {
         type: "START_ELEMENT_PICK"
     });
+
+    window.close();
 });
 
 existingRulesButton.addEventListener("click", async () => {
     browser.tabs.create({
         url: browser.runtime.getURL("existingRules.html")
     });
+
+    window.close();
 })

@@ -3,7 +3,7 @@ export type ImageReplacementRule = {
     host: string;
     imageHost: string;
     oldSrc: string;
-    oldFileName: string;
+    oldFileSrc: string;
     newSrc: string;
 };
 
