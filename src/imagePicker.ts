@@ -17,7 +17,7 @@ function createOverlay() {
         inset: "0",
         background: "rgba(0, 0, 0, 0.33)",
         zIndex: "2147483645",
-        pointerEvents: "none"
+        pointerEvents: "auto"
     });
 
     document.documentElement.appendChild(dimOverlay);
@@ -93,7 +93,13 @@ function onMouseMove(event: MouseEvent) {
             break;
         }
 
-        // 2. background-image on element
+        // 2. <video> with poster attribute
+        if (el instanceof HTMLVideoElement && el.poster.length > 0) {
+            img = { type: "video", element: el };
+            break;
+        }
+
+        // 3. background-image on element
         const bgUrl = getBackgroundImage(el);
         if (bgUrl) {
             img = { type: "background", element: el as HTMLElement, url: bgUrl };
@@ -103,9 +109,7 @@ function onMouseMove(event: MouseEvent) {
 
     if (img) {
         highlightedImage = img;
-        const rect = img.type === "img"
-            ? img.element.getBoundingClientRect()
-            : img.element.getBoundingClientRect();
+        const rect = img.element.getBoundingClientRect();
         highlightedImageBox!.style.display = "block";
         highlightedImageBox!.style.left = `${rect.left}px`;
         highlightedImageBox!.style.top = `${rect.top}px`;
@@ -119,16 +123,21 @@ function onMouseMove(event: MouseEvent) {
 }
 
 function onClick(event: MouseEvent) {
-    // Prevent page interaction
-    event.preventDefault();
-    event.stopPropagation();
-    event.stopImmediatePropagation();
-
     if (!highlightedImage) return;
 
-    const src = highlightedImage.type === "img"
-        ? highlightedImage.element.currentSrc || highlightedImage.element.src
-        : highlightedImage.url;
+    let src = "";
+
+    switch (highlightedImage.type) {
+        case "img":
+            src = highlightedImage.element.currentSrc || highlightedImage.element.src;
+            break;
+        case "video":
+            src = highlightedImage.element.poster;
+            break;
+        case "background":
+            src = highlightedImage.url;
+            break;
+    }
 
     showReplacementPopup(src, highlightedImage.type);
     stopPicking();
