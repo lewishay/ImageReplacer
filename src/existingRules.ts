@@ -26,40 +26,45 @@ async function createRow(table: HTMLElement, rule: ImageReplacementRule) {
     row.appendChild(firstCol);
 
     let secondCol = document.createElement("td");
-    secondCol.classList += "image-column";
+    secondCol.classList += "filepath-column";
+    secondCol.textContent = rule.oldFileSrc;
+    row.appendChild(secondCol);
+
+    let thirdCol = document.createElement("td");
+    thirdCol.classList += "image-column";
     let oldImg = document.createElement("img");
     oldImg.classList += "table-image";
     const res = await fetch(rule.oldSrc, { cache: "no-store" }); // bypass DNR blocking
     const blob = await res.blob();
     const objectUrl = URL.createObjectURL(blob);
     oldImg.src = objectUrl;
-    secondCol.appendChild(oldImg);
-    row.appendChild(secondCol);
-
-    let thirdCol = document.createElement("td");
-    thirdCol.classList += "image-column";
-    let newImg = document.createElement("img");
-    newImg.classList += "table-image";
-    newImg.src = rule.newSrc;
-    thirdCol.appendChild(newImg);
+    thirdCol.appendChild(oldImg);
     row.appendChild(thirdCol);
 
     let fourthCol = document.createElement("td");
-    fourthCol.classList += "actions-column";
+    fourthCol.classList += "image-column";
+    let newImg = document.createElement("img");
+    newImg.classList += "table-image";
+    newImg.src = rule.newSrc;
+    fourthCol.appendChild(newImg);
+    row.appendChild(fourthCol);
+
+    let fifthCol = document.createElement("td");
+    fifthCol.classList += "actions-column";
 
     let modifyButton = document.createElement("button");
     modifyButton.classList += "modify-button";
     modifyButton.textContent = "Modify";
     modifyButton.addEventListener("click", (e: MouseEvent) => modifyRule(rule, e));
-    fourthCol.appendChild(modifyButton);
+    fifthCol.appendChild(modifyButton);
 
     let deleteButton = document.createElement("button");
     deleteButton.classList += "delete-button";
     deleteButton.textContent = "Delete";
     deleteButton.addEventListener("click", () => deleteRule(rule));
-    fourthCol.appendChild(deleteButton);
+    fifthCol.appendChild(deleteButton);
 
-    row.appendChild(fourthCol);
+    row.appendChild(fifthCol);
 
     table.appendChild(row);
 }
@@ -114,10 +119,11 @@ async function confirmModification(targetRule: ImageReplacementRule, newPath: st
         });
 
         targetRule.newSrc = newPath;
+        const targetRules = Array(targetRule);
 
         await browser.runtime.sendMessage({
-            type: "ADD_RULE",
-            rule: targetRule
+            type: "ADD_RULES",
+            rules: targetRules
         });
     }
 

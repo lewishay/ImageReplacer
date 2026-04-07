@@ -1,20 +1,37 @@
 import { ImageReplacementRule, bgImgRegex, pseudos } from "./constants";
 
-export function replaceImagesByRule(rule: ImageReplacementRule, imageType: string) {
+export function replaceImagesByRule(rules: ImageReplacementRule[], imageType: string) {
+    const targetRule = rules[0]; // Most image types will only have one rule
     switch (imageType) {
         case "img":
             document.querySelectorAll("img").forEach(img => {
-                if (img.src.includes(rule.oldFileSrc) || img.srcset.includes(rule.oldFileSrc)) {
-                    img.src = rule.newSrc;
+                if (img.src.includes(targetRule.oldFileSrc) || img.srcset.includes(targetRule.oldFileSrc)) {
+                    img.src = targetRule.newSrc;
                     img.removeAttribute("srcset");
                     return;
                 }
             });
             break;
+        case "picture":
+            const pictures = document.querySelectorAll("picture");
+            rules.forEach(rule => {
+                pictures.forEach(picture => {
+                    Array.from(picture.children).forEach(child => {
+                        if (child instanceof HTMLSourceElement || child instanceof HTMLImageElement) {
+                            if (child.src.includes(rule.oldFileSrc) || child.srcset.includes(rule.oldFileSrc)) {
+                                child.src = rule.newSrc;
+                                child.removeAttribute("srcset");
+                                return;
+                            }
+                        }
+                    });
+                });
+            });
+            break;
         case "video":
             document.querySelectorAll("video").forEach(video => {
-                if (video.poster.includes(rule.oldFileSrc)) {
-                    video.poster = rule.newSrc;
+                if (video.poster.includes(targetRule.oldFileSrc)) {
+                    video.poster = targetRule.newSrc;
                     return;
                 }
             });
@@ -29,19 +46,17 @@ export function replaceImagesByRule(rule: ImageReplacementRule, imageType: strin
                     const match = bg.match(bgImgRegex);
                     const url = match ? match[1] : null;
 
-                    if (url && url.includes(rule.oldFileSrc)) {
+                    if (url && url.includes(targetRule.oldFileSrc)) {
 
                         if (pseudo === "none") {
-                            el.style.backgroundImage = `url("${rule.newSrc}")`;
+                            el.style.backgroundImage = `url("${targetRule.newSrc}")`;
                         }
                         else {
-                            const className = `replace-bg-${rule.id}`;
+                            const className = `replace-bg-${targetRule.id}`;
                             el.classList.add(className);
 
                             const styleEl = document.createElement("style");
-                            styleEl.textContent = `.${className}${pseudo} {
-                            background-image: url("${rule.newSrc}") !important;
-                        }`;
+                            styleEl.textContent = `.${className}${pseudo} { background-image: url("${targetRule.newSrc}") !important; }`;
                             document.head.appendChild(styleEl);
                         }
                     }

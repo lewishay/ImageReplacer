@@ -1,14 +1,17 @@
 import { ImageReplacementRule } from "./constants";
 
 browser.runtime.onMessage.addListener(async (msg) => {
-    if (msg.type === "ADD_RULE") {
+    if (msg.type === "ADD_RULES") {
         const rulesFromStorage = await browser.storage.local.get("imageRules");
         const hostsFromStorage = await browser.storage.local.get("imageReplacementHosts")
         const rules: ImageReplacementRule[] = rulesFromStorage.imageRules ?? [];
         const hosts: string[] = hostsFromStorage.imageReplacementHosts ?? [];
 
-        rules.push(msg.rule);
-        if (!hosts.includes(msg.rule.host)) hosts.push(msg.rule.host);
+        const newRules: ImageReplacementRule[] = msg.rules;
+        newRules.forEach(rule => {
+            rules.push(rule);
+            if (!hosts.includes(rule.host)) hosts.push(rule.host);
+        })
 
         await browser.storage.local.set({ imageRules: rules });
         await browser.storage.local.set({ imageReplacementHosts: hosts });

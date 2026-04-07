@@ -9,6 +9,7 @@ A Firefox extension that allows you to replace images across the web
 ## Supported elements
 This extension currently supports the following:
 - `img` elements
+- `picture` elements
 - `video` elements with a `poster` attribute
 - Elements with a `background-image` attribute
 

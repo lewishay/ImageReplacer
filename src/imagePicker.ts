@@ -1,5 +1,5 @@
 import { replaceImagesByRule } from "./imageReplacer";
-import { SupportedImage, urlRegex, bgImgRegex, pseudos } from "./constants";
+import { SupportedImage, urlRegex, bgImgRegex, pseudos, ImageReplacementRule } from "./constants";
 
 let picking = false;
 let highlightedImage: SupportedImage | null = null;
@@ -88,18 +88,24 @@ function onMouseMove(event: MouseEvent) {
 
     for (const el of elements) {
         // 1. <img>
-        if (el instanceof HTMLImageElement) {
+        if (el instanceof HTMLImageElement && !(el.parentElement instanceof HTMLPictureElement)) {
             img = { type: "img", element: el };
             break;
         }
 
-        // 2. <video> with poster attribute
+        // 2. <picture>
+        if (el instanceof HTMLPictureElement) {
+            img = { type: "picture", element: el, childImg: el.getElementsByTagName("img").item(0) };
+            break;
+        }
+
+        // 3. <video> with poster attribute
         if (el instanceof HTMLVideoElement && el.poster.length > 0) {
             img = { type: "video", element: el };
             break;
         }
 
-        // 3. background-image on element
+        // 4. background-image on element
         const bgUrl = getBackgroundImage(el);
         if (bgUrl) {
             img = { type: "background", element: el as HTMLElement, url: bgUrl };
@@ -109,7 +115,8 @@ function onMouseMove(event: MouseEvent) {
 
     if (img) {
         highlightedImage = img;
-        const rect = img.element.getBoundingClientRect();
+        const rect = img.type == "picture" && img.childImg ?
+            img.childImg.getBoundingClientRect() : img.element.getBoundingClientRect()
         highlightedImageBox!.style.display = "block";
         highlightedImageBox!.style.left = `${rect.left}px`;
         highlightedImageBox!.style.top = `${rect.top}px`;
@@ -125,17 +132,23 @@ function onMouseMove(event: MouseEvent) {
 function onClick(event: MouseEvent) {
     if (!highlightedImage) return;
 
-    let src = "";
+    let src = [];
 
     switch (highlightedImage.type) {
         case "img":
-            src = highlightedImage.element.currentSrc || highlightedImage.element.src;
+            src.push(highlightedImage.element.src);
+            break;
+        case "picture":
+            Array.from(highlightedImage.element.children).forEach(child => {
+                if (child instanceof HTMLSourceElement) src.push(child.srcset || child.src);
+                if (child instanceof HTMLImageElement) src.push(child.src);
+            })
             break;
         case "video":
-            src = highlightedImage.element.poster;
+            src.push(highlightedImage.element.poster);
             break;
         case "background":
-            src = highlightedImage.url;
+            src.push(highlightedImage.url);
             break;
     }
 
@@ -149,7 +162,7 @@ function onKeyDown(e: KeyboardEvent) {
     }
 }
 
-function showReplacementPopup(imageSrc: string, imageType: string) {
+function showReplacementPopup(imageSrc: string[], imageType: string) {
     document.getElementById("image-replace-popup")?.remove();
     replacementPopup = document.createElement("div");
     replacementPopup.id = "image-replace-popup";
@@ -164,7 +177,7 @@ function showReplacementPopup(imageSrc: string, imageType: string) {
     replacementPopup.appendChild(imageDiv);
 
     let targetImage = document.createElement("img");
-    targetImage.src = imageSrc;
+    targetImage.src = imageSrc[0];
     imageDiv.appendChild(targetImage);
 
     let arrowSymbol = document.createElement("p");
@@ -211,35 +224,52 @@ function loadImage(src: string) {
     }
 }
 
-async function confirmClick(oldPath: string, newPath: string, imgType: string) {
+async function confirmClick(oldPaths: string[], newPath: string, imgType: string) {
     currentReplacementImage = null;
     replacementPopup?.remove();
     replacementPopup = null;
 
-    const url = new URL(oldPath);
-    const currentHost = window.location.hostname.replace(/^www\./, ""); // host of website
-    const currentImageHost = url.host;                                  // host of image resource
-    const oldFilePath = url.pathname;
-    let newId = Date.now();
+    let newRules: ImageReplacementRule[] = [];
+    let idAddition = 0;
 
-    //console.log(currentHost);
-    //console.log(currentImageHost);
-    //console.log(oldPath);
-    //console.log(oldFilePath);
+    //console.log(`IMAGE TYPE: ${imgType}`);
 
-    const newRule = {
-        id: newId,
-        host: currentHost,
-        imageHost: currentImageHost,
-        oldSrc: oldPath,
-        oldFileSrc: oldFilePath,
-        newSrc: newPath
-    };
+    const currentHost = window.location.hostname.replace(/^www\./, "");
+
+    oldPaths.forEach(oldPath => {
+        let url;
+        try {
+            url = new URL(oldPath);
+        } catch (e) {
+            url = new URL(`https://${currentHost}${oldPath}`);
+        }
+        const currentImageHost = url.host;  
+        const oldFilePath = url.pathname;
+        let newId = Date.now() + idAddition;
+        idAddition++;
+
+        //console.log(`HOST: ${currentHost}`);
+        //console.log(`IMAGE HOST: ${currentImageHost}`);
+        //console.log(`PATH: ${url.toString()}`);
+        //console.log(`FILE PATH: ${oldFilePath}`);
+
+        const newRule = {
+            id: newId,
+            host: currentHost,
+            imageHost: currentImageHost,
+            oldSrc: url.toString(),
+            oldFileSrc: oldFilePath,
+            newSrc: newPath
+        };
+
+        newRules.push(newRule);
+    })
+
 
     await browser.runtime.sendMessage({
-        type: "ADD_RULE",
-        rule: newRule
+        type: "ADD_RULES",
+        rules: newRules
     });
 
-    replaceImagesByRule(newRule, imgType);
+    replaceImagesByRule(newRules, imgType);
 }
