@@ -14,24 +14,38 @@ p {
     margin-top: 0px;
 }
 
+table {
+    border-collapse: collapse;
+    text-align: center;
+}
+
+tr {
+    border-bottom: 1px white dashed;
+    height: 110px;
+}
+
+tbody > tr {
+    height: 40px;
+    border-bottom: 0px;
+}
+
 td {
     padding: 0px 25px;
     max-width: 400px;
 }
 
 .host-column {
-    text-align: center;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }
 
-.image-column {
-    text-align: center;
-}
-
-.actions-column {
-    text-align: center;
+.filepath-column {
+    white-space: nowrap;
+    overflow: auto;
+    display: block;
+    height: 110px;
+    align-content: center;
 }
 
 .table-image {

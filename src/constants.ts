@@ -9,6 +9,7 @@ export type ImageReplacementRule = {
 
 export type SupportedImage =
     | { type: "img"; element: HTMLImageElement }
+    | { type: "picture"; element: HTMLPictureElement; childImg: HTMLImageElement | null }
     | { type: "video"; element: HTMLVideoElement; }
     | { type: "background"; element: HTMLElement; url: string };
 
