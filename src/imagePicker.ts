@@ -105,7 +105,13 @@ function onMouseMove(event: MouseEvent) {
             break;
         }
 
-        // 4. background-image on element
+        // 4. <input> with type="image"
+        if (el instanceof HTMLInputElement && el.type === "image") {
+            img = { type: "input", element: el }
+            break;
+        }
+
+        // 5. background-image on element
         const bgUrl = getBackgroundImage(el);
         if (bgUrl) {
             img = { type: "background", element: el as HTMLElement, url: bgUrl };
@@ -146,6 +152,9 @@ function onClick(event: MouseEvent) {
             break;
         case "video":
             src.push(highlightedImage.element.poster);
+            break;
+        case "input":
+            src.push(highlightedImage.element.src);
             break;
         case "background":
             src.push(highlightedImage.url);

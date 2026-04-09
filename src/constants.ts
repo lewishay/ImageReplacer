@@ -11,6 +11,7 @@ export type SupportedImage =
     | { type: "img"; element: HTMLImageElement }
     | { type: "picture"; element: HTMLPictureElement; childImg: HTMLImageElement | null }
     | { type: "video"; element: HTMLVideoElement; }
+    | { type: "input"; element: HTMLInputElement; }
     | { type: "background"; element: HTMLElement; url: string };
 
 export const urlRegex = /^https?:\/\/(?:www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b(?:[-a-zA-Z0-9()@:%_\+.~#?&\/=]*)$/

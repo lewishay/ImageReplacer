@@ -36,6 +36,14 @@ export function replaceImagesByRule(rules: ImageReplacementRule[], imageType: st
                 }
             });
             break;
+        case "input":
+            document.querySelectorAll("input").forEach(input => {
+                if (input.type === "image" && input.src.includes(targetRule.oldFileSrc)) {
+                    input.src = targetRule.newSrc;
+                    return;
+                }
+            });
+            break;
         case "background":
             document.querySelectorAll<HTMLElement>("*").forEach(el => {
                 pseudos.forEach(pseudo => {
