@@ -20,6 +20,7 @@ This extension should work seamlessly for most use cases, but there are a few li
 - Replacement images will abide by the same sizing rules implemented for the original image. However, there are some pages where an image and/or its parent container has no sizing rules defined, so the image will render at its native size. It is recommended in these circumstances to choose a replacement image of a similar size to avoid changing the look and feel of a webpage.
 - Images inside of iframes are not targettable.
 - Some websites may have a background image in a large parent container that can prevent the ability to target images inside.
+- Images that are rendered in psuedo elements via the `content` attribute are not supported. This is because network request interception is unreliable for these images due to how they are cached in the browser. Given these types of images are relatively rare and often just small icons, the workarounds to support them did not seem worth it.
 
 ## Notes
 - Replacement rules will only apply to the website where the rule was configured, not every website.
