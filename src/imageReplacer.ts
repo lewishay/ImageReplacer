@@ -2,9 +2,10 @@ import { ImageReplacementRule, bgImgRegex, pseudos } from "./constants";
 
 export function replaceImagesByRule(rules: ImageReplacementRule[], imageType: string) {
     const targetRule = rules[0]; // Most image types will only have one rule
+    const doc = targetRule.isWithinIframe ? document.querySelector("iframe")!.contentDocument! : document;
     switch (imageType) {
         case "img":
-            document.querySelectorAll("img").forEach(img => {
+            doc.querySelectorAll("img").forEach(img => {
                 if (img.src.includes(targetRule.oldFileSrc) || img.srcset.includes(targetRule.oldFileSrc)) {
                     img.src = targetRule.newSrc;
                     img.removeAttribute("srcset");
@@ -13,7 +14,7 @@ export function replaceImagesByRule(rules: ImageReplacementRule[], imageType: st
             });
             break;
         case "picture":
-            const pictures = document.querySelectorAll("picture");
+            const pictures = doc.querySelectorAll("picture");
             rules.forEach(rule => {
                 pictures.forEach(picture => {
                     Array.from(picture.children).forEach(child => {
@@ -29,7 +30,7 @@ export function replaceImagesByRule(rules: ImageReplacementRule[], imageType: st
             });
             break;
         case "video":
-            document.querySelectorAll("video").forEach(video => {
+            doc.querySelectorAll("video").forEach(video => {
                 if (video.poster.includes(targetRule.oldFileSrc)) {
                     video.poster = targetRule.newSrc;
                     return;
@@ -37,7 +38,7 @@ export function replaceImagesByRule(rules: ImageReplacementRule[], imageType: st
             });
             break;
         case "input":
-            document.querySelectorAll("input").forEach(input => {
+            doc.querySelectorAll("input").forEach(input => {
                 if (input.type === "image" && input.src.includes(targetRule.oldFileSrc)) {
                     input.src = targetRule.newSrc;
                     return;
@@ -45,7 +46,7 @@ export function replaceImagesByRule(rules: ImageReplacementRule[], imageType: st
             });
             break;
         case "background":
-            document.querySelectorAll<HTMLElement>("*").forEach(el => {
+            doc.querySelectorAll<HTMLElement>("*").forEach(el => {
                 pseudos.forEach(pseudo => {
                     const bg = pseudo === "none"
                         ? getComputedStyle(el).backgroundImage
@@ -63,9 +64,9 @@ export function replaceImagesByRule(rules: ImageReplacementRule[], imageType: st
                             const className = `replace-bg-${targetRule.id}`;
                             el.classList.add(className);
 
-                            const styleEl = document.createElement("style");
+                            const styleEl = doc.createElement("style");
                             styleEl.textContent = `.${className}${pseudo} { background-image: url("${targetRule.newSrc}") !important; }`;
-                            document.head.appendChild(styleEl);
+                            doc.head.appendChild(styleEl);
                         }
                     }
                 });
