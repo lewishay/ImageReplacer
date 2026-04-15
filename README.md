@@ -1,5 +1,5 @@
 # ImageReplacer
-A Firefox extension that allows you to replace images across the web
+A Firefox extension that allows you to replace images across the web by modifying network requests
 
 ## Functionality
 - Select a supported element on the current webpage to replace, and enter a URL of an image to replace it
@@ -11,16 +11,18 @@ This extension currently supports the following:
 - `img` elements
 - `picture` elements
 - `video` elements with a `poster` attribute
+- `input` elements that have the `image` type
 - Elements with a `background-image` attribute
 
 ## Limitations
 This extension should work seamlessly for most use cases, but there are a few limitations due to the inconsistent nature of HTML/CSS on the web, browser settings and user behaviour. These limitations are as follows:
+- The image source must be a network request (a http URL). Inline resources (the format "data:image/png;base64,...") are not supported as there is no network request to modify.
 - Depending on your browser settings, some images may be cached and therefore not appear to be replaced after a regular page refresh. If you notice this, I recommended to force refresh (Ctrl+F5 on Windows, Cmd+Shift+R on Mac).
 - Replacement rules use source paths, so if a website has multiple source paths for what looks like the same image (typically in different sizes/qualities), each one would need a separate rule.
 - Replacement images will abide by the same sizing rules implemented for the original image. However, there are some pages where an image and/or its parent container has no sizing rules defined, so the image will render at its native size. It is recommended in these circumstances to choose a replacement image of a similar size to avoid changing the look and feel of a webpage.
 - Images inside of iframes are not targettable.
 - Some websites may have a background image in a large parent container that can prevent the ability to target images inside.
-- Images that are rendered in psuedo elements via the `content` attribute are not supported. This is because network request interception is unreliable for these images due to how they are cached in the browser. Given these types of images are relatively rare and often just small icons, the workarounds to support them did not seem worth it.
+- Images that are rendered in psuedo elements via the `content` attribute are not supported. This is because network request modification is unreliable for these images due to how they are cached in the browser. Given these types of images are relatively rare and often just small icons, the workarounds to support them did not seem worth it.
 
 ## Notes
 - Replacement rules will only apply to the website where the rule was configured, not every website.

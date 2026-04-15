@@ -8,10 +8,10 @@ export type ImageReplacementRule = {
 };
 
 export type SupportedImage =
-    | { type: "img"; element: HTMLImageElement }
-    | { type: "picture"; element: HTMLPictureElement; childImg: HTMLImageElement | null }
-    | { type: "video"; element: HTMLVideoElement; }
-    | { type: "input"; element: HTMLInputElement; }
+    | { type: "img"; element: HTMLImageElement; url: string }
+    | { type: "picture"; element: HTMLPictureElement; childImg: HTMLImageElement | null; url: string }
+    | { type: "video"; element: HTMLVideoElement; url:string }
+    | { type: "input"; element: HTMLInputElement; url:string }
     | { type: "background"; element: HTMLElement; url: string };
 
 export const urlRegex = /^https?:\/\/(?:www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b(?:[-a-zA-Z0-9()@:%_\+.~#?&\/=]*)$/
