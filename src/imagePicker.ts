@@ -89,25 +89,26 @@ function onMouseMove(event: MouseEvent) {
     for (const el of elements) {
         // 1. <img>
         if (el instanceof HTMLImageElement && !(el.parentElement instanceof HTMLPictureElement)) {
-            img = { type: "img", element: el };
+            img = { type: "img", element: el, url: el.src };
             break;
         }
 
         // 2. <picture>
         if (el instanceof HTMLPictureElement) {
-            img = { type: "picture", element: el, childImg: el.getElementsByTagName("img").item(0) };
+            const child = el.getElementsByTagName("img").item(0)!
+            img = { type: "picture", element: el, childImg: child, url: child.src };
             break;
         }
 
         // 3. <video> with poster attribute
         if (el instanceof HTMLVideoElement && el.poster.length > 0) {
-            img = { type: "video", element: el };
+            img = { type: "video", element: el, url: el.poster };
             break;
         }
 
         // 4. <input> with type="image"
         if (el instanceof HTMLInputElement && el.type === "image") {
-            img = { type: "input", element: el }
+            img = { type: "input", element: el, url: el.src }
             break;
         }
 
@@ -119,7 +120,7 @@ function onMouseMove(event: MouseEvent) {
         }
     }
 
-    if (img) {
+    if (img && img.url.match(urlRegex)) {
         highlightedImage = img;
         const rect = img.type == "picture" && img.childImg ?
             img.childImg.getBoundingClientRect() : img.element.getBoundingClientRect()
@@ -141,24 +142,14 @@ function onClick(event: MouseEvent) {
     let src = [];
 
     switch (highlightedImage.type) {
-        case "img":
-            src.push(highlightedImage.element.src);
-            break;
         case "picture":
             Array.from(highlightedImage.element.children).forEach(child => {
                 if (child instanceof HTMLSourceElement) src.push(child.srcset || child.src);
                 if (child instanceof HTMLImageElement) src.push(child.src);
             })
             break;
-        case "video":
-            src.push(highlightedImage.element.poster);
-            break;
-        case "input":
-            src.push(highlightedImage.element.src);
-            break;
-        case "background":
+        default:
             src.push(highlightedImage.url);
-            break;
     }
 
     showReplacementPopup(src, highlightedImage.type);
