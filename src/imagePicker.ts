@@ -7,6 +7,8 @@ let highlightedImageBox: HTMLDivElement | null = null;
 let dimOverlay: HTMLDivElement | null = null;
 let replacementPopup: HTMLDivElement | null = null;
 let currentReplacementImage: HTMLImageElement | null;
+let iframeLocationX: number = 0;
+let iframeLocationY: number = 0;
 
 function createOverlay() {
     if (dimOverlay) return;
@@ -81,49 +83,81 @@ function stopPicking() {
     highlightedImageBox!.style.display = "none";
 }
 
-function onMouseMove(event: MouseEvent) {
-    document.body.style.cursor = "crosshair";
-    const elements = document.elementsFromPoint(event.clientX, event.clientY);
-    let img: SupportedImage | null = null;
+function getImageFromMouseLocation(x: number, y: number, document: Document, isIframe: boolean): SupportedImage | null {
+    const elements = document.elementsFromPoint(x, y);
 
     for (const el of elements) {
+        const win = el.ownerDocument.defaultView!; // this is defined and used in the switch to access elements in iframes
+
+        // Handle iframe
+        if (el instanceof win.HTMLIFrameElement) {
+            try {
+                const iframeDoc = el.contentDocument;
+                if (!iframeDoc) continue;
+
+                const rect = el.getBoundingClientRect();
+
+                // Store iframe co-ords for the highlighted image code elsewhere
+                iframeLocationX = rect.left;
+                iframeLocationY = rect.top;
+
+                const iframeX = x - rect.left;
+                const iframeY = y - rect.top;
+
+                const result = getImageFromMouseLocation(iframeX, iframeY, iframeDoc, true);
+                if (result) return result;
+            } catch (e) {
+                // Cross-origin iframe, cannot be accessed
+                continue;
+            }
+        }
+
         // 1. <img>
-        if (el instanceof HTMLImageElement && !(el.parentElement instanceof HTMLPictureElement)) {
-            img = { type: "img", element: el, url: el.src };
-            break;
+        if (el instanceof win.HTMLImageElement && !(el.parentElement instanceof win.HTMLPictureElement)) {
+            return { type: "img", element: el, url: el.src, isWithinIframe: isIframe };
         }
 
         // 2. <picture>
-        if (el instanceof HTMLPictureElement) {
-            const child = el.getElementsByTagName("img").item(0)!
-            img = { type: "picture", element: el, childImg: child, url: child.src };
-            break;
+        if (el instanceof win.HTMLPictureElement) {
+            const child = el.querySelectorAll("img")[0];
+            return { type: "picture", element: el, childImg: child, url: child.src, isWithinIframe: isIframe };
         }
 
         // 3. <video> with poster attribute
-        if (el instanceof HTMLVideoElement && el.poster.length > 0) {
-            img = { type: "video", element: el, url: el.poster };
-            break;
+        if (el instanceof win.HTMLVideoElement && el.poster.length > 0) {
+            return { type: "video", element: el, url: el.poster, isWithinIframe: isIframe };
         }
 
         // 4. <input> with type="image"
-        if (el instanceof HTMLInputElement && el.type === "image") {
-            img = { type: "input", element: el, url: el.src }
-            break;
+        if (el instanceof win.HTMLInputElement && el.type === "image") {
+            return { type: "input", element: el, url: el.src, isWithinIframe: isIframe }
         }
 
         // 5. background-image on element
         const bgUrl = getBackgroundImage(el);
         if (bgUrl) {
-            img = { type: "background", element: el as HTMLElement, url: bgUrl };
-            break;
+            return { type: "background", element: el as HTMLElement, url: bgUrl, isWithinIframe: isIframe };
         }
     }
 
+    return null;
+}
+
+function onMouseMove(event: MouseEvent) {
+    document.body.style.cursor = "crosshair";
+    const img = getImageFromMouseLocation(event.clientX, event.clientY, document, false);
+
     if (img && img.url.match(urlRegex)) {
         highlightedImage = img;
-        const rect = img.type == "picture" && img.childImg ?
-            img.childImg.getBoundingClientRect() : img.element.getBoundingClientRect()
+        let rect = img.type == "picture" && img.childImg ? img.childImg.getBoundingClientRect() : img.element.getBoundingClientRect()
+        if (img.isWithinIframe) {
+            rect = new DOMRect(
+                rect.left + iframeLocationX,
+                rect.top + iframeLocationY,
+                rect.width,
+                rect.height
+            );
+        }
         highlightedImageBox!.style.display = "block";
         highlightedImageBox!.style.left = `${rect.left}px`;
         highlightedImageBox!.style.top = `${rect.top}px`;
@@ -143,16 +177,17 @@ function onClick(event: MouseEvent) {
 
     switch (highlightedImage.type) {
         case "picture":
+            const win = highlightedImage.element.ownerDocument.defaultView!;
             Array.from(highlightedImage.element.children).forEach(child => {
-                if (child instanceof HTMLSourceElement) src.push(child.srcset || child.src);
-                if (child instanceof HTMLImageElement) src.push(child.src);
+                if (child instanceof win.HTMLSourceElement) src.push(child.srcset || child.src);
+                if (child instanceof win.HTMLImageElement) src.push(child.src);
             })
             break;
         default:
             src.push(highlightedImage.url);
     }
 
-    showReplacementPopup(src, highlightedImage.type);
+    showReplacementPopup(src, highlightedImage.type, highlightedImage.isWithinIframe);
     stopPicking();
 }
 
@@ -162,7 +197,7 @@ function onKeyDown(e: KeyboardEvent) {
     }
 }
 
-function showReplacementPopup(imageSrc: string[], imageType: string) {
+function showReplacementPopup(imageSrc: string[], imageType: string, isWithinIframe: boolean) {
     document.getElementById("image-replace-popup")?.remove();
     replacementPopup = document.createElement("div");
     replacementPopup.id = "image-replace-popup";
@@ -206,7 +241,7 @@ function showReplacementPopup(imageSrc: string[], imageType: string) {
     let confirmButton = document.createElement("button");
     confirmButton.id = "confirm-button";
     confirmButton.textContent = "Confirm";
-    confirmButton.addEventListener("click", () => confirmClick(imageSrc, input.value, imageType));
+    confirmButton.addEventListener("click", () => confirmClick(imageSrc, input.value, imageType, isWithinIframe));
     buttonsDiv.appendChild(confirmButton);
 
     let exitButton = document.createElement("button");
@@ -224,7 +259,7 @@ function loadImage(src: string) {
     }
 }
 
-async function confirmClick(oldPaths: string[], newPath: string, imgType: string) {
+async function confirmClick(oldPaths: string[], newPath: string, imgType: string, withinIframe: boolean) {
     currentReplacementImage = null;
     replacementPopup?.remove();
     replacementPopup = null;
@@ -259,7 +294,8 @@ async function confirmClick(oldPaths: string[], newPath: string, imgType: string
             imageHost: currentImageHost,
             oldSrc: url.toString(),
             oldFileSrc: oldFilePath,
-            newSrc: newPath
+            newSrc: newPath,
+            isWithinIframe: withinIframe
         };
 
         newRules.push(newRule);
