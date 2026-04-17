@@ -21,6 +21,7 @@ function createOverlay() {
         zIndex: "2147483645",
         pointerEvents: "auto"
     });
+    dimOverlay.style.cursor = "crosshair";
 
     document.documentElement.appendChild(dimOverlay);
 }
@@ -144,7 +145,6 @@ function getImageFromMouseLocation(x: number, y: number, document: Document, isI
 }
 
 function onMouseMove(event: MouseEvent) {
-    document.body.style.cursor = "crosshair";
     const img = getImageFromMouseLocation(event.clientX, event.clientY, document, false);
 
     if (img && img.url.match(urlRegex)) {
@@ -278,7 +278,7 @@ async function confirmClick(oldPaths: string[], newPath: string, imgType: string
         } catch (e) {
             url = new URL(`https://${currentHost}${oldPath}`);
         }
-        const currentImageHost = url.host;  
+        const currentImageHost = url.host;
         const oldFilePath = url.pathname;
         let newId = Date.now() + idAddition;
         idAddition++;
@@ -299,8 +299,7 @@ async function confirmClick(oldPaths: string[], newPath: string, imgType: string
         };
 
         newRules.push(newRule);
-    })
-
+    });
 
     await browser.runtime.sendMessage({
         type: "ADD_RULES",
