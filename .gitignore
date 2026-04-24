@@ -1,9 +1,9 @@
 # Dependencies
 node_modules/
 
-# Build output (compiled extension)
-dist/
-src/web-ext-artifacts
+# Build output (compiled extension), except icons
+dist/*
+!dist/icons/
 
 # TypeScript build info
 *.tsbuildinfo
@@ -13,3 +13,6 @@ src/web-ext-artifacts
 
 # Git settings
 .git
+
+# API keys
+api_keys.txt

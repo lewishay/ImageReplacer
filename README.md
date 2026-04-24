@@ -37,4 +37,4 @@ HTML/CSS are copied to the output dir using:
 `npm run copy`
 
 Addon is built to a ZIP file using:
-`web-ext build`
+`web-ext build` from the `dist` dir
